@@ -62,7 +62,7 @@ public class MarkdownRenderService {
 
         Files.write(Paths.get(targetFilePath),
                     body.getBytes(Charset.forName("UTF-8")),
-                    StandardOpenOption.WRITE);
+                    StandardOpenOption.TRUNCATE_EXISTING);
 
         return HttpResponse.of(HttpStatus.OK,
                                MediaType.PLAIN_TEXT_UTF_8,
