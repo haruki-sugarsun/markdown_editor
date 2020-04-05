@@ -1,5 +1,7 @@
 package net.sickhack.markdowneditor.server;
 
+import java.nio.file.*;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,26 +18,37 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         // Options
-        Getopt options = new Getopt("testprog", args, "ab:c::df:");
+        Getopt options = new Getopt("testprog", args, "f:");
 
         String targetFilePath = null;
         boolean isDebug = false;
 
         int c;
         while ( (c = options.getopt()) != -1) {
-            switch (c) {                
-            case 'd':
-                isDebug = true;
-                break;
-            case 'n':
+            switch (c) {
+            case 'f':
                 targetFilePath = options.getOptarg();
+                logger.info("Target file is given: {}", targetFilePath);
                 break;
             default:
-                System.err.println("引数指定の誤り：未知の引数が指定");
+                // TODO: Improve help message.
+                System.err.println("Usage: -f <file path>");
+                System.exit(1);
             }
         }
 
-        final Server server = newServer(8080);
+        // Validate the options.
+        if (targetFilePath != null) {
+            if (!Files.isReadable(Paths.get(targetFilePath))) {
+                logger.error("Given file needs to be readble.");
+                System.exit(1);
+            }
+            if (!Files.isWritable(Paths.get(targetFilePath))) {
+                logger.warn("Given file should be writable.");
+            }
+        }
+
+        final Server server = newServer(8080, targetFilePath);
 
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             server.stop().join();
@@ -53,16 +66,13 @@ public class Main {
      *
      * @param port the port that the server is to be bound to
      */
-    static Server newServer(int port) {
+    static Server newServer(int port, String targetFilePath) {
         final ServerBuilder sb = Server.builder();
+        // TODO: Remove Unused files.
+        // TODO: Avoid passing the `targetFilePath` everywhere. We may use DI or centralized configuration.
         return sb.http(port)
-                 .annotatedService("/pathPattern", new PathPatternService())
-                 .annotatedService("/injection", new InjectionService())
-                 .annotatedService("/messageConverter", new MessageConverterService())
-                 .annotatedService("/exception", new ExceptionHandlerService())
-                 .annotatedService("/render", new MarkdownRenderService())
-                .annotatedService("/editor", new EditorPageService())
-                 .serviceUnder("/docs", new DocService())
+                 .annotatedService("/render", new MarkdownRenderService(targetFilePath))
+                 .annotatedService("/editor", new EditorPageService(targetFilePath))
                  .build();
     }
 }

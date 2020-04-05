@@ -33,24 +33,46 @@
     <script>
         function postForPreview() {
             var t = document.getElementById("editor_textarea").value;
+            var saveOnPreviewFlag = document.getElementById("save_on_preview").checked;
+
+            // TODO: Use some library to properly wrap and abstract Ajax calls.
             xhr = new XMLHttpRequest();
-            xhr.onload = function(e){
+            var handleError = function(e){
                 console.log(e);
+                document.getElementById("auto_preview").checked = false;
+                document.getElementById("save_on_preview").checked = false;
+                window.alert("Preview API call had failed. Please check with the admin");
+            };
+            xhr.addEventListener('load', function(e){
+                console.log(e);
+                if (xhr.status != 200) {
+                    handleError(e);
+                    return;
+                }
+
                 console.log(xhr.responseText);
+
 
                 var viewerWrapper = document.getElementById("viewer_wrapper");
                 viewerWrapper.innerHTML = xhr.responseText;
-            };
-            xhr.open('POST', '/render/bypost', true);
+            });
+            xhr.addEventListener('error', handleError);
+
+            // TODO: Improve the API endpoint implementation and make it more type-aware.
+            if (saveOnPreviewFlag) {
+                xhr.open('POST', '/render/bypost_and_save', true);
+            } else {
+                xhr.open('POST', '/render/bypost', true);
+            }
             xhr.setRequestHeader('content-type', 'text/plain-text;charset=UTF-8');
             xhr.send(t);
         }
 
         var previousBody = '';
         function maybeAutoPostForPreview() {
-            var flag = document.getElementById("auto_preview").checked;
+            var previewFlag = document.getElementById("auto_preview").checked;
             var currentBody = document.getElementById("editor_textarea").value;
-            if (!!flag && currentBody != previousBody) {
+            if (!!previewFlag && currentBody != previousBody) {
                 previousBody = currentBody;
                 postForPreview();
             }
@@ -63,34 +85,17 @@
     <div id="container">
 <!-- LEFT: Editor pane -->
 <div id="editor_wrapper">
-    <textarea id="editor_textarea">
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-* Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-* ?
-
-1. Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-2. ?
-
-```Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.```
-`?` 
-
-> Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.```
-> ?
-
-<http://www.sickhack.net/>
-
-TODO:
-* Replace the examples with more meaningful sample.
-    </textarea>
+    <textarea id="editor_textarea">___EXAMPLE_MD___</textarea>
+    <!-- TODO: Have indicators to show what is on going. -->
 
     <input type="submit" value="Preview" onclick="postForPreview()"><br/>
     <input id="auto_preview" type="checkbox">Auto Preview</input>
+    <input id="save_on_preview" type="checkbox">Preview & Save</input>
 </div>
 
 <!-- RIGHT: Preview pane -->
 <div id="viewer_wrapper">
-    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Click "Preview" button~
 </div>
         
 </div>

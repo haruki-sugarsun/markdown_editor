@@ -20,18 +20,40 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.function.Function;
 
+// TODO: Properly read the resources from classpath.
 @LoggingDecorator(
         requestLogLevel = LogLevel.INFO,            // Log every request sent to this service at INFO level.
         successfulResponseLogLevel = LogLevel.INFO  // Log every response sent from this service at INFO level.
 )
 public class EditorPageService {
 
+    private final String targetFilePath;
+
+    EditorPageService(String targetFilePath) {
+        this.targetFilePath = targetFilePath;
+    }
+
     @Get("/index.html")
     public HttpResponse index() throws IOException {
-        byte[] bytes = Files.readAllBytes(Paths.get("src/main/resources/index.html"));
+        String baseIndexHtml = readFile("src/main/resources/index.html");
+        String exampleMd; // TODO: variable name is not appropriate. Have better abstraction and configuration.
+        if (targetFilePath == null) {
+            exampleMd =  readFile("src/main/resources/example.md");
+        } else {
+            exampleMd =  readFile(targetFilePath);
+        }
+
+        String result = baseIndexHtml.replace("___EXAMPLE_MD___", exampleMd);
 
         return HttpResponse.of(HttpStatus.OK, MediaType.HTML_UTF_8,
-                               bytes);
+                               result);
+    }
+
+    private String readFile(String path) throws IOException {
+        byte[] bytes = Files.readAllBytes(Paths.get(path));
+        // TODO: Consider charset. maybe force UTF-8.
+        String strContent = new String(bytes);
+        return strContent;
     }
 
 }
