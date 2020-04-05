@@ -1,0 +1,63 @@
+plugins {
+    id 'application'
+    id "io.spring.dependency-management" version "1.0.9.RELEASE"
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'idea'
+
+repositories {
+    mavenCentral()
+}
+
+dependencyManagement {
+    imports {
+        mavenBom 'io.netty:netty-bom:4.1.47.Final'
+        mavenBom 'com.linecorp.armeria:armeria-bom:0.99.1'
+        mavenBom 'org.junit:junit-bom:5.6.1'
+    }
+}
+
+dependencies {
+  implementation 'com.google.code.findbugs:jsr305:3.0.2'
+  testImplementation 'junit:junit:4.13'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api'
+  testImplementation 'org.junit.jupiter:junit-jupiter-params'
+  testRuntimeOnly 'org.junit.platform:junit-platform-commons'
+  testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+  testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
+}
+
+dependencies {
+    implementation 'com.linecorp.armeria:armeria'
+    runtimeOnly 'org.slf4j:slf4j-simple:1.7.30'
+
+    // GetOpt
+    implementation 'gnu.getopt:java-getopt:1.0.13'
+
+    // commonmark
+    implementation 'com.atlassian.commonmark:commonmark:0.14.0'
+
+    testImplementation 'net.javacrumbs.json-unit:json-unit-fluent:2.14.0'
+    testImplementation 'org.assertj:assertj-core:3.15.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api'
+}
+
+application {
+    mainClassName = 'net.sickhack.markdowneditor.server.Main'
+}
+
+tasks.withType(JavaCompile) {
+    sourceCompatibility = '1.8'
+    targetCompatibility = '1.8'
+    options.encoding = 'UTF-8'
+    options.debug = true
+    options.compilerArgs += '-parameters'
+}
+
+tasks.withType(Test) {
+    useJUnitPlatform()
+}
+

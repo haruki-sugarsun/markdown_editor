@@ -1,0 +1,90 @@
+<html>
+<head>
+    <style>
+        body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+        #container {
+            display: flex;
+            flex-direction: row;
+            justify-content: space-around;
+            width: auto;
+            min-height: 90%;
+        }
+        #editor_wrapper {
+            padding: 1em;
+            width: 48%;
+            height: auto;        }
+        #viewer_wrapper {
+            padding: 1em;
+            width: 48%;
+            height: 100%;
+            overflow: :scroll;
+        }
+        #editor_textarea {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+
+    <script>
+        function postForPreview() {
+            var t = document.getElementById("editor_textarea").value;
+            xhr = new XMLHttpRequest();
+            xhr.onload = function(e){
+                console.log(e);
+                console.log(xhr.responseText);
+
+                var viewerWrapper = document.getElementById("viewer_wrapper");
+                viewerWrapper.innerHTML = xhr.responseText;
+            };
+            xhr.open('POST', '/render/bypost', true);
+            xhr.setRequestHeader('content-type', 'text/plain-text;charset=UTF-8');
+            xhr.send(t);
+        }
+
+        var previousBody = '';
+        function maybeAutoPostForPreview() {
+            var flag = document.getElementById("auto_preview").checked;
+            var currentBody = document.getElementById("editor_textarea").value;
+            if (!!flag && currentBody != previousBody) {
+                previousBody = currentBody;
+                postForPreview();
+            }
+        }
+        window.setInterval(maybeAutoPostForPreview, 1000)
+    </script>
+
+</head>
+<body>
+    <div id="container">
+<!-- LEFT: Editor pane -->
+<div id="editor_wrapper">
+    <textarea id="editor_textarea">
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+    </textarea>
+
+    <input type="submit" value="Preview" onclick="postForPreview()"><br/>
+    <input id="auto_preview" type="checkbox">Auto Preview</input>
+    <hr />
+
+    <form action="/render/byquery" method="GET">
+        <textarea name="t">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+        </textarea>
+        <input type="submit" value="submit">
+    </form>
+
+</div>
+<!-- RIGHT: Preview pane -->
+<div id="viewer_wrapper">
+    Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+</div>
+        
+</div>
+
+</body>
+</html>
